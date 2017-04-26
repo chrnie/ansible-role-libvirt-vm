@@ -1,0 +1,6 @@
+---
+# defaults file for ansible-role-libvirt-vm
+
+libvirt-vm_use_packer: True
+
+

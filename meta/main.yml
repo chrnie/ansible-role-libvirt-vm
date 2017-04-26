@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Christoph Niemann
+  description: add packer prebuild virtual machines to libvirt
+
+  license: Apache
+
+  min_ansible_version: 2.0
+
+  # OS Support:
+  platforms:
+  - name: EL
+    versions:
+    - 7
+  - name: Debian
+    versions:
+    - 8
+
+  galaxy_tags: []
+
+dependencies: []
