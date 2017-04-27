@@ -1,0 +1,91 @@
+---
+# check if images have been created by packer
+# if not refer to README because you have to do this manually one time!
+
+- set_fact:
+    thisVm: "{{ item }}"
+
+- name: 'Fail: if packer_vm_path does not exist in hash'
+  fail: msg="Please add missing params to this VM"
+  when: thisVm.value.packer_vm_path is not defined or
+        thisVm.value.cores is not defined or
+        thisVm.value.disk is not defined or
+        thisVm.value.fqdn is not defined or
+        thisVm.value.group is not defined or
+        thisVm.value.nat_mac is not defined or
+        thisVm.value.nat_ip is not defined or
+        thisVm.value.public_ip is not defined or
+        thisVm.value.public_mac is not defined or
+        thisVm.value.ram is not defined or
+        thisVm.value.vmUUID is not defined
+
+- name: Stat packer boot image
+  stat:
+    path: "{{ thisVm.value.packer_vm_path }}"
+  register: stat_result
+
+- name: "Fail: if packer image does not exist"
+  fail: msg="Can't find {{ thisVm.value.packer_vm_path }}! Run packer as described in chrnie.packer/README.md"
+  when: stat_result.stat.exists == False
+
+- name: Copy base image to storage pool
+  copy:
+    remote_src: True
+    src: "{{ thisVm.value.packer_vm_path }}"
+    dest: "{{ libvirt_vms_path }}/{{ thisVm.value.disk }}"
+    force: no
+
+#- name: create vm xml
+#  template:
+#    src: "{{ thisVm.value.distro }}{{ thisVm.value.release }}_base.xml.j2"
+#    dest: "/tmp/{{ thisVm.value.fqdn }}.xml"
+
+- set_fact:
+    thisXml: "{{ item }}"
+
+- name: Stat vm xml
+  stat:
+    path: "/etc/libvirt/qemu/{{thisVm.value.fqdn}}.xml"
+  register: stat_result
+
+- name: define vm
+  virt:
+    name: "{{ thisVm.value.fqdn }}"
+    command: define
+    xml: "{{ lookup('template', thisVm.value.distro + thisVm.value.release + '_base.xml.j2') }}"
+  when: stat_result.stat.exists == False
+
+- name: start vm
+  virt:
+    name: "{{ thisVm.value.fqdn }}"
+    state: running
+
+#- name: add vm to Ansible Inventory
+#  add_host:
+#    hostname: "{{ thisVm.value.fqdn }}"
+#    ansible_host: "{{ inventory_hostname }}_NEWHOST"
+#    fqdn:       "{{ thisVm.value.fqdn }}"
+#    nat_ip:     "{{ thisVm.value.nat_ip }}"
+#    nat_mac:    "{{ thisVm.value.nat_mac }}"
+#    public_ip:  "{{ thisVm.value.public_ip }}"
+#    public_mac: "{{ thisVm.value.public_mac }}"
+#  when: "thisVm.value.fqdn not in groups['all']"
+
+- debug:
+    msg: "Adding Host to inventory"
+
+- name: ensure that the primary group of this host exists in inventory
+  lineinfile:
+    path: "{{ libvirtVm_inventory_file }}"
+    regexp: "^\\[\\s?{{thisVm.group}}\\s?\\]"
+    line: "[ {{thisVm.group}} ]"
+  delegate_to: localhost
+- name: ensure new Host exist in inventory
+  lineinfile:
+    path: "{{ libvirtVm_inventory_file }}"
+    regexp: "^{{thisVm.fqdn}}"
+    insertafter: "^\\[\\s?{{thisVm.group}}\\]"
+    line: "{{thisVm.fqdn}}"
+  delegate_to: localhost
+
+

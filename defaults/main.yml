@@ -1,6 +1,32 @@
 ---
 # defaults file for ansible-role-libvirt-vm
 
-libvirt-vm_use_packer: True
+libvirtVm_use_packer: True
+libvirtVm_add_to_inventory: False
+libvirtVm_delete_from_inventory: False
+libvirtVm_inventory_file: False
 
+libvirt_vms_path: /var/lib/libvirt/images/
+
+# if your provider is hetzner you have to generate the public_mac address in https://robot.your-server.de
+# you will always get a nic in your default network and an optional public IP
+# use uuidgen for a new vmUUID
+
+libvirtVm_list:
+  debil1:
+    fqdn: "server42.example.org"
+    group: "vm-webserver-wordpress"
+    state: "present"
+    public_ip: "123.123.123.123"
+    #public_ip: False
+    public_mac: "AA:10:36:20:1C:1A"
+    nat_ip: "192.168.122.42"
+    nat_mac: "52:54:00:12:12:01"
+    ram: "4096"
+    cores: "2"
+    disk: "server42-disk.cqow2"
+    vmUUID: "00000000-0000-0000-0000-000000000000" # use uuidgen on your cli for a new uuid
+    distro: "centos"
+    release: "7"
+    packer_vm_path: "/opt/packer/distros/centos7/centos7-base-img/centos7-base"
 

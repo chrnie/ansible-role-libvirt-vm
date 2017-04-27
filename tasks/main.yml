@@ -1,2 +1,7 @@
 ---
 # tasks file for ansible-role-libvirt-vm
+
+- name: check if images have been created by packer
+  include: addVm.yml
+  with_dict: "{{ libvirtVm_list }}"
+  when: "libvirtVm_use_packer"
