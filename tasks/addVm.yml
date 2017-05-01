@@ -74,18 +74,17 @@
 - debug:
     msg: "Adding Host to inventory"
 
-- name: ensure that the primary group of this host exists in inventory
+- name: "ensure that the primary group of this host exists in inventory"
   lineinfile:
     path: "{{ libvirtVm_inventory_file }}"
-    regexp: "^\\[\\s?{{thisVm.group}}\\s?\\]"
-    line: "[ {{thisVm.group}} ]"
+    regexp: "^\\[{{thisVm.value.group}}\\]"
+    line: "[{{thisVm.value.group}}]"
   delegate_to: localhost
-- name: ensure new Host exist in inventory
+
+- name: "ensure new Host exists in inventory"
   lineinfile:
     path: "{{ libvirtVm_inventory_file }}"
-    regexp: "^{{thisVm.fqdn}}"
-    insertafter: "^\\[\\s?{{thisVm.group}}\\]"
-    line: "{{thisVm.fqdn}}"
+    regexp: "^{{thisVm.value.fqdn}}"
+    insertafter: "^\\[{{thisVm.value.group}}\\]"
+    line: "{{thisVm.value.fqdn}} ansible_host=192.168.122.9"
   delegate_to: localhost
-
-

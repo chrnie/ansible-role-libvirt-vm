@@ -1,0 +1,51 @@
+---
+
+- name: network_RedHat7.yml included
+  debug:
+    msg: "System {{ inventory_hostname }} has uuid {{ ansible_product_uuid }}"
+
+- name: install needed network manager libs
+  yum:
+    name: '{{ yum_item }}'
+    state: installed
+  with_items:
+    - NetworkManager-glib
+    - nm-connection-editor
+    - libsemanage-python
+    - policycoreutils-python
+  loop_control:
+    loop_var: yum_item
+
+- name: configure guest network settings
+  include: update_ansible_host.yml
+
+- name: nat | eth0
+  nmcli:
+    conn_name: eth0
+    ifname: eth0
+    type: ethernet
+    ip4: "{{nat_ip}}/24"
+    gw4: 192.168.122.1
+    state: present
+    autoconnect: yes
+  when: ansible_eth0 is defined and
+        ansible_eth0.macaddress|lower == nat_mac|lower and
+        nat_ip not in ansible_all_ipv4_addresses
+  register: update_nat
+  notify: nmcli con reload
+
+- name: nat | eth1
+  nmcli:
+    conn_name: eth1
+    ifname: eth1
+    type: ethernet
+    ip4: "{{nat_ip}}/24"
+    gw4: 192.168.122.1
+    state: present
+    autoconnect: yes
+  when: ansible_eth1 is defined and
+        ansible_eth1.macaddress|lower == nat_mac|lower and
+        nat_ip not in ansible_all_ipv4_addresses
+  register: update_nat
+  notify: nmcli con reload
+

@@ -1,7 +1,25 @@
 ---
 # tasks file for ansible-role-libvirt-vm
 
-- name: check if images have been created by packer
+- name: check if images have been created by packer and add guests to libvirt
   include: addVm.yml
   with_dict: "{{ libvirtVm_list }}"
-  when: "libvirtVm_use_packer"
+  when: libvirtVm_use_packer and
+        item.value.fqdn not in groups['all'] and
+        libvirtVm_mode == "host"
+
+- name: "include host_vars writer for new vm"
+  include: hostVarsVm.yml
+  with_dict: "{{ libvirtVm_list }}"
+  when: libvirtVm_mode is defined and
+        libvirtVm_mode == 'host' and
+        libvirtVm_use_packer
+
+- name: configure guest network settings
+  include: "{{ item }}"
+  with_first_found:
+    - "network_{{ ansible_distribution }}{{ansible_distribution_major_version}}.yml"
+    - "network_{{ ansible_os_family }}{{ansible_distribution_major_version}}.yml"
+    - "network_default.yml"
+  when: libvirtVm_mode is defined and
+        libvirtVm_mode == "guest"

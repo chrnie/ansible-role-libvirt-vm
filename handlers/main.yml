@@ -1,2 +1,11 @@
 ---
 # handlers file for ansible-role-libvirt-vm
+  
+- name: nmcli con reload
+  command: nmcli con reload
+  notify: restart network
+
+- name: restart network
+  systemd:
+    state: restarted
+    name: network.service

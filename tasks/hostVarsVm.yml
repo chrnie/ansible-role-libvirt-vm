@@ -1,0 +1,11 @@
+---
+
+- set_fact:
+    thisVm: "{{ item }}"
+
+- name: "create vm_host_vars"
+  template:
+    src: guest_hostvars.j2
+    dest: "{{ libvirtVm_host_vars_path }}/{{thisVm.value.fqdn}}"
+    force: no
+  delegate_to: localhost

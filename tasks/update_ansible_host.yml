@@ -1,0 +1,10 @@
+---
+
+- name: "ensure Host exists in inventory"
+  become: False
+  lineinfile:
+    path: "{{ libvirtVm_inventory_file }}"
+    regexp: "^{{fqdn}}"
+    insertafter: "^\\[{{group}}\\]"
+    line: "{{fqdn}} ansible_host={{nat_ip}}"
+  delegate_to: localhost
