@@ -19,6 +19,39 @@
 - name: configure guest network settings
   include: update_ansible_host.yml
 
+- name: public Network | eth0
+  nmcli:
+    conn_name: eth0
+    ifname: eth0
+    type: ethernet
+    state: present
+    autoconnect: yes
+  when: ansible_eth0 is defined and
+        ansible_eth0.macaddress|lower == public_mac|lower
+  register: update_public
+  notify: nmcli con reload
+
+- name: public DHCP| eth0
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth0
+    regexp: '^BOOTPROTO'
+    line: 'BOOTPROTO=dhcp'
+  when: update_public.changed
+
+- name: public DHCP| eth0
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth0
+    regexp: "{{clearline}}"
+    state: absent
+  with_items:
+    - '^IPADDR'
+    - '^DNS'
+    - '^PREFIX'
+    - '^GATEWAY'
+  loop_control:
+    loop_var: clearline
+  when: update_public.changed
+
 - name: nat | eth0
   nmcli:
     conn_name: eth0
