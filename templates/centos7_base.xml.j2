@@ -62,6 +62,12 @@ or other application using the libvirt API.
     <controller type='virtio-serial' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
     </controller>
+    <interface type='network'>
+      <mac address='{{ thisVm.value.nat_mac }}'/>
+      <source network='default'/>
+      <model type='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
+    </interface>
 {% if thisVm.value.public_ip != False or thisVm.value.public_ip is not defined %} 
     <interface type='bridge'>
       <mac address='{{ thisVm.value.public_mac }}'/>
@@ -70,12 +76,6 @@ or other application using the libvirt API.
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
     </interface>
 {% endif %}
-    <interface type='network'>
-      <mac address='{{ thisVm.value.nat_mac }}'/>
-      <source network='default'/>
-      <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
-    </interface>
     <serial type='pty'>
       <target port='0'/>
     </serial>

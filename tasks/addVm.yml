@@ -74,6 +74,13 @@
 - debug:
     msg: "Adding Host to inventory"
 
+- name: get NAT IP from arp table
+  shell: "arp -n |grep -i {{ thisVm.value.nat_mac }} | cut -f 1 -d ' '"
+  register: newVmIp
+
+- debug:
+    msg: "newVmIp: {{newVmIp}}"
+
 - name: "ensure that the primary group of this host exists in inventory"
   lineinfile:
     path: "{{ libvirtVm_inventory_file }}"
@@ -86,5 +93,5 @@
     path: "{{ libvirtVm_inventory_file }}"
     regexp: "^{{thisVm.value.fqdn}}"
     insertafter: "^\\[{{thisVm.value.group}}\\]"
-    line: "{{thisVm.value.fqdn}} ansible_host=192.168.122.9"
+    line: "{{thisVm.value.fqdn}} ansible_host={{newVmIp.stdout}}"
   delegate_to: localhost
